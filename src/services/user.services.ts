@@ -10,6 +10,7 @@ class UserService {
         if (!UserService.instance) {
             UserService.instance = new UserService();
         }
+
         return UserService.instance;
     }
 
