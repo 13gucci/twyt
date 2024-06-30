@@ -23,7 +23,7 @@ class DatabaseService {
 
     async connect() {
         try {
-            // Connect to the client
+            // Connect to the  client
             await this.client.connect();
             // Send a ping to confirm a successful connection
             await this.database.command({ ping: 1 });
