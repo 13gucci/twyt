@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { Db, MongoClient, Collection } from 'mongodb';
-import User, { IUser } from '~/models/schemas/user.schema';
+import { Collection, Db, MongoClient } from 'mongodb';
+import { IUser } from '~/models/schemas/user.schema';
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_SERVERNAME}.sqz2qdy.mongodb.net/?appName=MinhEduServer`;
 
