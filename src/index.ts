@@ -1,7 +1,7 @@
-import express, { Request, Response } from 'express';
 import 'dotenv/config';
-import userRouters from './routes/user.routes';
-import database from './services/database.services';
+import express from 'express';
+import userRouters from '~/routes/user.routes';
+import database from '~/services/database.services';
 
 const app = express();
 

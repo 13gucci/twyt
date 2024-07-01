@@ -1,6 +1,4 @@
 import { Request, Response } from 'express';
-import User, { IUser } from '~/models/schemas/user.schema';
-import databaseService from '~/services/database.services';
 import userServices from '~/services/user.services';
 
 export const loginController = (req: Request, res: Response) => {
