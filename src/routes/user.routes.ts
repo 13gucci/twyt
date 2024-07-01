@@ -13,7 +13,7 @@ router.post(
     requestValidator(registerValidator),
     (req, res, next) => {
         console.log('Request handler 1');
-        next(new Error('Loi roi ban ei'));
+        next(new Error('Loi roi ban  ei'));
     },
     (req, res, next) => {
         console.log('Request handler 2');
