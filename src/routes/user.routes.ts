@@ -5,7 +5,7 @@ import { loginValidator } from '~/middlewares/user.middlewares';
 
 const router = Router();
 
-// [POST] /api/login
+// [POST]  /api/login
 router.post(ROUTES.USER.LOGIN, loginValidator, loginController);
 
 // [POST] /api/register
