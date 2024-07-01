@@ -1,14 +1,13 @@
 import { Router } from 'express';
 import { ROUTES } from '~/constants/routes';
 import { loginController, registerController } from '~/controllers/user.controllers';
-import { loginValidator } from '~/middlewares/user.middlewares';
+import { registerValidator } from '~/middlewares/user.middlewares';
+import { requestValidator } from '~/utils/validation';
 
 const router = Router();
 
-// [POST]  /api/login
-router.post(ROUTES.USER.LOGIN, loginValidator, loginController);
+router.post(ROUTES.USER.LOGIN, loginController);
 
-// [POST] /api/register
-router.post(ROUTES.USER.REGISTER, registerController);
+router.post(ROUTES.USER.REGISTER, requestValidator(registerValidator), registerController);
 
 export default router;

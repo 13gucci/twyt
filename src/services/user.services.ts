@@ -1,6 +1,11 @@
+import 'dotenv/config';
+import { JWT_ALGORITHM } from '~/constants/constant';
+import { TokenType } from '~/constants/enum';
+import { RegisterReqBody } from '~/models/requests/user.request';
 import User from '~/models/schemas/user.schema';
+import signToken from '~/utils/jwt';
+import hashPasswordOneWay from '~/utils/security';
 import databaseService from './database.services';
-
 class UserService {
     private static instance: UserService;
 
@@ -14,14 +19,59 @@ class UserService {
         return UserService.instance;
     }
 
-    public async register(payload: { email: string; password: string }) {
+    private signAccessToken(user_id: string): Promise<string> {
+        return signToken({
+            payload: {
+                user_id,
+                token_type: TokenType.ACCESS_TOKEN
+            },
+            secretKey: process.env.JWT_ACCESS_KEY as string,
+            options: {
+                algorithm: JWT_ALGORITHM,
+                expiresIn: process.env.ACCESS_KEY_EXPIRES_IN
+            }
+        });
+    }
+
+    private signRefreshToken(user_id: string): Promise<string> {
+        return signToken({
+            payload: {
+                user_id,
+                token_type: TokenType.REFRESH_TOKEN
+            },
+            secretKey: process.env.JWT_REFRESH_KEY as string,
+            options: {
+                algorithm: JWT_ALGORITHM,
+                expiresIn: process.env.REFRESH_KEY_EXPIRES_IN
+            }
+        });
+    }
+
+    public async register(payload: RegisterReqBody): Promise<{
+        access_token: string;
+        refresh_token: string;
+    }> {
         const response = await databaseService.users.insertOne(
             new User({
-                email: payload.email,
-                password: payload.password
+                ...payload,
+                date_of_birth: new Date(payload.date_of_birth),
+                password: hashPasswordOneWay(payload.password)
             })
         );
-        return response;
+
+        if (!response) {
+            throw new Error('Failed to register user');
+        }
+
+        const user_id = response.insertedId.toString();
+        const [access_token, refresh_token] = await Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)]);
+
+        return { access_token, refresh_token };
+    }
+
+    public async checkExistEmail(payload: { email: string }): Promise<boolean> {
+        const user = await databaseService.users.findOne({ email: payload.email });
+        return Boolean(user);
     }
 }
 
