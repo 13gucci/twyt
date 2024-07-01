@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import { matchedData, query, validationResult } from 'express-validator';
 import userRouters from '~/routes/user.routes';
 import database from '~/services/database.services';
 
@@ -7,7 +8,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use('/api', userRouters);
+app.use('/api/user', userRouters);
 
 database.connect();
 
