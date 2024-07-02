@@ -6,6 +6,7 @@ import User from '~/models/schemas/user.schema';
 import signToken from '~/utils/jwt';
 import hashPasswordOneWay from '~/utils/security';
 import databaseService from './database.services';
+
 class UserService {
     private static instance: UserService;
 
@@ -58,10 +59,6 @@ class UserService {
                 password: hashPasswordOneWay(payload.password)
             })
         );
-
-        if (!response) {
-            throw new Error('Failed to register user');
-        }
 
         const user_id = response.insertedId.toString();
         const [access_token, refresh_token] = await Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)]);
