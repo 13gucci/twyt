@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express, { NextFunction, Request, Response } from 'express';
 import userRouters from '~/routes/user.routes';
 import database from '~/services/database.services';
-import STATUS_CODES from './constants/httpStatusCode';
+import HTTP_STATUS_CODES from './constants/httpStatusCode';
 
 const app = express();
 
@@ -15,7 +15,8 @@ database.connect();
 // Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.log('Xy ly o index', err);
-    res.status(STATUS_CODES.NOT_FOUND).json({
+
+    res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
         error: err.message
     });
 });

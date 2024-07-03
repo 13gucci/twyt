@@ -1,5 +1,8 @@
 import { checkSchema } from 'express-validator';
 import { resolve } from 'path';
+import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
+import { ERROR_MESSAGES } from '~/constants/messages';
+import { ErrorWithStatusCode } from '~/models/errors';
 import userServices from '~/services/user.services';
 
 export const registerValidator = checkSchema({
@@ -24,7 +27,10 @@ export const registerValidator = checkSchema({
             options: async (value) => {
                 const isExistedEmail = await userServices.checkExistEmail({ email: value });
                 if (isExistedEmail) {
-                    throw new Error('Email already existed');
+                    throw new ErrorWithStatusCode({
+                        message: ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
+                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                    });
                 }
             }
         }
