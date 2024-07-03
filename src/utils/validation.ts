@@ -6,13 +6,15 @@ export const requestValidator = (validation: RunnableValidationChains<Validation
     return async (req: Request, res: Response, next: NextFunction) => {
         await validation.run(req);
         const errors = validationResult(req);
+        const errorsObject = errors.mapped();
 
         if (errors.isEmpty()) {
             return next();
         }
 
-        return res.status(400).json({
-            errors: errors.mapped()
+        console.log(errorsObject);
+        return res.status(422).json({
+            errors: errorsObject
         });
     };
 };

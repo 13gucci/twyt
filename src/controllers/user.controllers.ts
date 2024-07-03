@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
+import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import STATUS_CODES from '~/constants/httpStatusCode';
-import { RegisterReqBody } from '~/models/requests/user.request';
+import { SUCCESS_MESSAGES } from '~/constants/messages';
+import { RegisterReqBody } from '~/@types/requests/user.type.request';
 import userServices from '~/services/user.services';
 //
 export const loginController = (req: Request, res: Response) => {
@@ -18,13 +20,17 @@ export const loginController = (req: Request, res: Response) => {
     });
 };
 
-export const registerController = async (req: Request<ParamsDictionary, unknown, RegisterReqBody>, res: Response, next: NextFunction) => {
+export const registerController = async (
+    req: Request<ParamsDictionary, unknown, RegisterReqBody>,
+    res: Response,
+    next: NextFunction
+) => {
     const { email, password, date_of_birth, name } = req.body;
 
     const response = await userServices.register({ date_of_birth, email, name, password });
 
-    return res.status(STATUS_CODES.CREATED).json({
-        message: 'Register user successfully',
+    return res.status(HTTP_STATUS_CODES.CREATED).json({
+        message: SUCCESS_MESSAGES.REGISTER_SUCCESS,
         response
     });
 };

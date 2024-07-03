@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { JWT_ALGORITHM } from '~/constants/constant';
 import { TokenType } from '~/constants/enum';
-import { RegisterReqBody } from '~/models/requests/user.request';
+import { RegisterReqBody } from '~/@types/requests/user.type.request';
 import User from '~/models/schemas/user.schema';
 import signToken from '~/utils/jwt';
 import hashPasswordOneWay from '~/utils/security';
@@ -61,7 +61,10 @@ class UserService {
         );
 
         const user_id = response.insertedId.toString();
-        const [access_token, refresh_token] = await Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)]);
+        const [access_token, refresh_token] = await Promise.all([
+            this.signAccessToken(user_id),
+            this.signRefreshToken(user_id)
+        ]);
 
         return { access_token, refresh_token };
     }

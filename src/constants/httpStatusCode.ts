@@ -1,4 +1,4 @@
-const STATUS_CODES = {
+const HTTP_STATUS_CODES = {
     // Informational responses (100–199)
     CONTINUE: 100,
     SWITCHING_PROTOCOLS: 101,
@@ -73,4 +73,4 @@ const STATUS_CODES = {
     NETWORK_AUTHENTICATION_REQUIRED: 511
 };
 
-export default STATUS_CODES;
+export default HTTP_STATUS_CODES;
