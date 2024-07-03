@@ -1,23 +1,22 @@
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
-import STATUS_CODES from '~/constants/httpStatusCode';
-import { SUCCESS_MESSAGES } from '~/constants/messages';
 import { RegisterReqBody } from '~/@types/requests/user.type.request';
+import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
+import { SUCCESS_MESSAGES } from '~/constants/messages';
+import User from '~/models/schemas/user.schema';
 import userServices from '~/services/user.services';
 //
-export const loginController = (req: Request, res: Response) => {
-    const { email, password } = req.body;
+export const loginController = async (req: Request, res: Response) => {
+    const { user } = req;
+    const { _id } = user as User;
 
-    if (email === 'bibabibum0110@gmail.com' && password === '123456') {
-        return res.status(200).send({
-            message: 'success'
+    if (_id) {
+        const response = await userServices.login(_id.toString());
+        return res.status(HTTP_STATUS_CODES.OK).json({
+            message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
+            response
         });
     }
-
-    return res.status(400).json({
-        message: 'Username or password failed'
-    });
 };
 
 export const registerController = async (

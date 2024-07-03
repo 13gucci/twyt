@@ -1,46 +1,68 @@
 import { checkSchema } from 'express-validator';
-import { resolve } from 'path';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { ERROR_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatusCode } from '~/models/errors';
 import userServices from '~/services/user.services';
 
+export const loginValidator = checkSchema({
+    email: {
+        isEmail: {
+            errorMessage: ERROR_MESSAGES.EMAIL_MUST_VALID
+        },
+        custom: {
+            options: async (value, { req }) => {
+                const user = await userServices.checkLogin({ email: value, password: req.body.password });
+                if (user === null) {
+                    throw new ErrorWithStatusCode({
+                        message: ERROR_MESSAGES.INVALID_CREDENTIALS,
+                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                    });
+                }
+                req.user = user;
+                return true;
+            }
+        }
+    },
+    password: {
+        notEmpty: {
+            errorMessage: ERROR_MESSAGES.PASSWORD_IS_REQUIRED
+        }
+    }
+});
+
 export const registerValidator = checkSchema({
     name: {
         notEmpty: {
-            errorMessage: 'Name is required'
+            errorMessage: ERROR_MESSAGES.NAME_IS_REQUIRED
         },
         isString: {
-            errorMessage: 'Name must be a string'
+            errorMessage: ERROR_MESSAGES.NAME_IS_STRING
         },
         trim: true
     },
     email: {
         notEmpty: {
-            errorMessage: 'Email is required'
+            errorMessage: ERROR_MESSAGES.EMAIL_IS_REQUIRED
         },
         isEmail: {
-            errorMessage: 'Email must be valid'
+            errorMessage: ERROR_MESSAGES.EMAIL_MUST_VALID
         },
         trim: true,
         custom: {
             options: async (value) => {
                 const isExistedEmail = await userServices.checkExistEmail({ email: value });
                 if (isExistedEmail) {
-                    throw new ErrorWithStatusCode({
-                        message: ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
-                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
-                    });
+                    throw new Error(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
                 }
             }
         }
     },
     password: {
         notEmpty: {
-            errorMessage: 'Password is required'
+            errorMessage: ERROR_MESSAGES.PASSWORD_IS_REQUIRED
         },
         isString: {
-            errorMessage: 'Password must be a string'
+            errorMessage: ERROR_MESSAGES.PASSWORD_IS_STRING
         },
         isStrongPassword: {
             options: {
@@ -50,29 +72,28 @@ export const registerValidator = checkSchema({
                 minUppercase: 1,
                 minSymbols: 1
             },
-            errorMessage:
-                'Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one symbol'
+            errorMessage: ERROR_MESSAGES.PASSWORD_TOO_WEAK
         }
     },
     confirm_password: {
         notEmpty: {
-            errorMessage: 'Confirm password is required'
+            errorMessage: ERROR_MESSAGES.CONFIRM_PASSWORD_REQUIRED
         },
         custom: {
             options: (value, { req }) => value === req.body.password,
-            errorMessage: 'Confirm password must match password'
+            errorMessage: ERROR_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH
         }
     },
     date_of_birth: {
         notEmpty: {
-            errorMessage: 'Date of birth is required'
+            errorMessage: ERROR_MESSAGES.DOB_REQUIRED
         },
         isISO8601: {
             options: {
                 strict: true,
                 strictSeparator: true
             },
-            errorMessage: 'Date of birth must be a valid ISO8601 date'
+            errorMessage: ERROR_MESSAGES.DOB_MUST_VALID
         }
     }
 });
