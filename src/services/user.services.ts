@@ -1,8 +1,9 @@
 import 'dotenv/config';
+import { WithId } from 'mongodb';
+import { LoginReqBody, RegisterReqBody } from '~/@types/requests/user.type.request';
 import { JWT_ALGORITHM } from '~/constants/constant';
 import { TokenType } from '~/constants/enum';
-import { RegisterReqBody } from '~/@types/requests/user.type.request';
-import User from '~/models/schemas/user.schema';
+import User, { IUser } from '~/models/schemas/user.schema';
 import signToken from '~/utils/jwt';
 import hashPasswordOneWay from '~/utils/security';
 import databaseService from './database.services';
@@ -48,6 +49,10 @@ class UserService {
         });
     }
 
+    private async signTokens(user_id: string): Promise<[access_token: string, refresh_token: string]> {
+        return await Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)]);
+    }
+
     public async register(payload: RegisterReqBody): Promise<{
         access_token: string;
         refresh_token: string;
@@ -61,17 +66,31 @@ class UserService {
         );
 
         const user_id = response.insertedId.toString();
-        const [access_token, refresh_token] = await Promise.all([
-            this.signAccessToken(user_id),
-            this.signRefreshToken(user_id)
-        ]);
+        const [access_token, refresh_token] = await this.signTokens(user_id);
 
         return { access_token, refresh_token };
     }
 
-    public async checkExistEmail(payload: { email: string }): Promise<boolean> {
+    public async checkExistEmail(payload: { email: string }): Promise<WithId<IUser> | null> {
         const user = await databaseService.users.findOne({ email: payload.email });
-        return Boolean(user);
+        return user;
+    }
+
+    public async checkLogin(payload: { email: string; password: string }): Promise<WithId<IUser> | null> {
+        const user = await databaseService.users.findOne({
+            email: payload.email,
+            password: hashPasswordOneWay(payload.password)
+        });
+        return user;
+    }
+
+    public async login(user_id: string) {
+        const [access_token, refresh_token] = await this.signTokens(user_id);
+
+        return {
+            access_token,
+            refresh_token
+        };
     }
 }
 

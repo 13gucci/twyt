@@ -10,6 +10,7 @@ export const ERROR_MESSAGES = {
     INVALID_CREDENTIALS: 'Invalid email or password',
     PASSWORD_IS_REQUIRED: 'Password is required',
     PASSWORD_TOO_SHORT: 'Password must be at least 6 characters long',
+    PASSWORD_IS_STRING: 'Password must be a string',
     PASSWORD_TOO_WEAK:
         'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
     PASSWORDS_DO_NOT_MATCH: 'Passwords do not match',
@@ -23,23 +24,31 @@ export const ERROR_MESSAGES = {
     FIELD_MUST_BE_NUMBER: '{field} must be a number',
     FIELD_MUST_BE_DATE: '{field} must be a valid date',
 
+    //Confirm password
+    CONFIRM_PASSWORD_REQUIRED: 'Confirm password is required',
+    CONFIRM_PASSWORD_MUST_MATCH: 'Confirm password must match password',
+
     // User-specific errors
     USER_ALREADY_EXISTS: 'User already exists',
     USER_CREATION_FAILED: 'Failed to create user',
     USER_UPDATE_FAILED: 'Failed to update user',
     USER_DELETION_FAILED: 'Failed to delete user',
 
+    //Date of birth
+    DOB_REQUIRED: 'Date of birth is required',
+    DOB_MUST_VALID: 'Date of birth must be a valid ISO8601 date',
     // Authentication errors
     AUTHENTICATION_FAILED: 'Authentication failed',
     TOKEN_EXPIRED: 'Your session has expired, please log in again',
     TOKEN_INVALID: 'Invalid token, please log in again',
 
     // Validation errors
+    VALIDATION_ERROR: 'Validation error',
     FIELD_TOO_SHORT: '{field} is too short',
     FIELD_TOO_LONG: '{field} is too long',
     FIELD_INVALID_FORMAT: '{field} has an invalid format',
     FIELD_NOT_UNIQUE: '{field} must be unique'
-};
+} as const;
 
 export const SUCCESS_MESSAGES = {
     // General success messages
@@ -62,4 +71,4 @@ export const SUCCESS_MESSAGES = {
 
     // Validation success messages
     VALIDATION_SUCCESS: 'All fields are valid'
-};
+} as const;
