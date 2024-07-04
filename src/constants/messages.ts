@@ -47,7 +47,14 @@ export const ERROR_MESSAGES = {
     FIELD_TOO_SHORT: '{field} is too short',
     FIELD_TOO_LONG: '{field} is too long',
     FIELD_INVALID_FORMAT: '{field} has an invalid format',
-    FIELD_NOT_UNIQUE: '{field} must be unique'
+    FIELD_NOT_UNIQUE: '{field} must be unique',
+
+    // Token
+    ACCESS_TOKEN_REQUIRED: 'Access_token is required',
+    ACCESS_TOKEN_INVALID_FORMAT: 'Access_token is invalid format',
+    REFRESH_TOKEN_REQUIRED: 'Access_token is required',
+    REFRESH_TOKEN_MUST_BE_STRING: 'Refresh_token must be a string',
+    REFRESH_TOKEN_NOT_EXIST: 'Refresh_token is not existed'
 } as const;
 
 export const SUCCESS_MESSAGES = {
