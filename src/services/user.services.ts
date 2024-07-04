@@ -4,10 +4,11 @@ import { RegisterReqBody } from '~/@types/requests/user.type.request';
 import { JWT_ALGORITHM } from '~/constants/constant';
 import { TokenType } from '~/constants/enum';
 import User, { IUser } from '~/models/schemas/user.schema';
-import signToken from '~/utils/jwt';
+import { signToken } from '~/utils/jwt';
 import hashPasswordOneWay from '~/utils/security';
 import databaseService from './database.services';
 import refreshTokenServices from './refresh_token.services';
+import { SUCCESS_MESSAGES } from '~/constants/messages';
 
 class UserService {
     private static instance: UserService;
@@ -22,10 +23,10 @@ class UserService {
         return UserService.instance;
     }
 
-    private signAccessToken(user_id: string): Promise<string> {
+    private signAccessToken(payload: { user_id: string }): Promise<string> {
         return signToken({
             payload: {
-                user_id,
+                user_id: payload.user_id,
                 token_type: TokenType.ACCESS_TOKEN
             },
             secretKey: process.env.JWT_ACCESS_KEY as string,
@@ -36,10 +37,10 @@ class UserService {
         });
     }
 
-    private signRefreshToken(user_id: string): Promise<string> {
+    private signRefreshToken(payload: { user_id: string }): Promise<string> {
         return signToken({
             payload: {
-                user_id,
+                user_id: payload.user_id,
                 token_type: TokenType.REFRESH_TOKEN
             },
             secretKey: process.env.JWT_REFRESH_KEY as string,
@@ -50,8 +51,11 @@ class UserService {
         });
     }
 
-    private async signTokens(user_id: string): Promise<[access_token: string, refresh_token: string]> {
-        return await Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)]);
+    private async signTokens(payload: { user_id: string }): Promise<[access_token: string, refresh_token: string]> {
+        return await Promise.all([
+            this.signAccessToken({ user_id: payload.user_id }),
+            this.signRefreshToken({ user_id: payload.user_id })
+        ]);
     }
 
     public async register(payload: RegisterReqBody): Promise<{
@@ -67,7 +71,7 @@ class UserService {
         );
 
         const user_id = response.insertedId.toString();
-        const [access_token, refresh_token] = await this.signTokens(user_id);
+        const [access_token, refresh_token] = await this.signTokens({ user_id });
 
         await refreshTokenServices.createRefreshTokenByUserId({
             token: refresh_token,
@@ -90,17 +94,24 @@ class UserService {
         return user;
     }
 
-    public async login(user_id: string) {
-        const [access_token, refresh_token] = await this.signTokens(user_id);
+    public async login(payload: { user_id: string }) {
+        const [access_token, refresh_token] = await this.signTokens({ user_id: payload.user_id });
 
         await refreshTokenServices.createRefreshTokenByUserId({
             token: refresh_token,
-            user_id: user_id
+            user_id: payload.user_id
         });
 
         return {
             access_token,
             refresh_token
+        };
+    }
+
+    public async logout(payload: { token: string }): Promise<{ message: string }> {
+        await refreshTokenServices.deleteRefreshToken({ token: payload.token });
+        return {
+            message: SUCCESS_MESSAGES.LOGOUT_SUCCESS
         };
     }
 }

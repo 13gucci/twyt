@@ -1,4 +1,4 @@
-import { InsertOneResult, ObjectId } from 'mongodb';
+import { InsertOneResult, ObjectId, WithId } from 'mongodb';
 import { IRefreshToken, RefreshToken } from '~/models/schemas/refresh_token.schema';
 import databaseService from './database.services';
 
@@ -26,6 +26,15 @@ class RefreshTokenService {
         );
 
         return response;
+    }
+
+    public async checkExistRefreshToken(payload: { token: string }): Promise<WithId<IRefreshToken> | null> {
+        const response = await databaseService.refresh_token.findOne({ token: payload.token });
+        return response;
+    }
+
+    public async deleteRefreshToken(payload: { token: string }) {
+        await databaseService.refresh_token.deleteOne({ token: payload.token });
     }
 }
 

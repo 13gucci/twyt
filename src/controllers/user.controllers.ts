@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { RegisterReqBody } from '~/@types/requests/user.type.request';
+import { LogoutReqBody, RegisterReqBody } from '~/@types/requests/user.type.request';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { SUCCESS_MESSAGES } from '~/constants/messages';
 import User from '~/models/schemas/user.schema';
@@ -12,7 +12,7 @@ export const loginController = async (req: Request, res: Response) => {
     const { _id } = user as User;
 
     if (_id) {
-        const response = await userServices.login(_id.toString());
+        const response = await userServices.login({ user_id: _id.toString() });
 
         return res.status(HTTP_STATUS_CODES.OK).json({
             message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
@@ -33,5 +33,14 @@ export const registerController = async (
     return res.status(HTTP_STATUS_CODES.CREATED).json({
         message: SUCCESS_MESSAGES.REGISTER_SUCCESS,
         response
+    });
+};
+
+export const logoutController = async (req: Request<ParamsDictionary, unknown, LogoutReqBody>, res: Response) => {
+    const { refresh_token } = req.body;
+    const response = await userServices.logout({ token: refresh_token });
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+        message: response.message
     });
 };
