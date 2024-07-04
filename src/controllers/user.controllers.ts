@@ -4,6 +4,7 @@ import { RegisterReqBody } from '~/@types/requests/user.type.request';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { SUCCESS_MESSAGES } from '~/constants/messages';
 import User from '~/models/schemas/user.schema';
+import refreshTokenServices from '~/services/refresh_token.services';
 import userServices from '~/services/user.services';
 //
 export const loginController = async (req: Request, res: Response) => {
@@ -12,6 +13,7 @@ export const loginController = async (req: Request, res: Response) => {
 
     if (_id) {
         const response = await userServices.login(_id.toString());
+
         return res.status(HTTP_STATUS_CODES.OK).json({
             message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
             response

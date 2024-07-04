@@ -7,7 +7,7 @@ enum EUserVerifyStatus {
 }
 
 export interface IUser {
-    _id?: ObjectId;
+    _id: ObjectId;
     name: string;
     email: string;
     date_of_birth: Date;
@@ -43,7 +43,7 @@ export default class User {
     avatar: string;
     cover_photo: string;
 
-    constructor(usr: IUser) {
+    constructor(usr: Omit<IUser, '_id'>) {
         const currentDate = new Date();
 
         this._id = new ObjectId();

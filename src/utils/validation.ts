@@ -19,13 +19,13 @@ export const requestValidator = (validation: RunnableValidationChains<Validation
 
         Object.keys(errorsObject).forEach((key) => {
             const { msg } = errorsObject[key];
-            //Error is not from validate 422
+
+            //Error is from ErrorWithStatusCode
             if (msg instanceof ErrorWithStatusCode && msg.status_code !== HTTP_STATUS_CODES.UNPROCESSABLE_ENTITY) {
                 return next(msg);
             }
-            entityErrors.errors[key] = errorsObject[key];
-            console.log(entityErrors);
 
+            entityErrors.errors[key] = errorsObject[key];
             return next(entityErrors);
         });
     };
