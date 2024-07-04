@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { Collection, Db, MongoClient } from 'mongodb';
+import { IRefreshToken } from '~/models/schemas/refresh_token.schema';
 import { IUser } from '~/models/schemas/user.schema';
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_SERVERNAME}.sqz2qdy.mongodb.net/?appName=MinhEduServer`;
@@ -21,7 +22,7 @@ class DatabaseService {
         return DatabaseService.instance;
     }
 
-    async connect() {
+    public async connect() {
         try {
             // Connect to the  client
             await this.client.connect();
@@ -40,6 +41,13 @@ class DatabaseService {
             throw new Error('DOCUMENT_USER environment variable is not set or is empty');
         }
         return this.database.collection(process.env.DB_USER_COLLECTION);
+    }
+
+    get refresh_token(): Collection<IRefreshToken> {
+        if (!process.env.DB_REFRESH_TOKEN_COLLECTION) {
+            throw new Error('DOCUMENT_RF environment variable is not set or is empty');
+        }
+        return this.database.collection(process.env.DB_REFRESH_TOKEN_COLLECTION);
     }
 }
 

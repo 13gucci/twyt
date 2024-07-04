@@ -3,6 +3,7 @@ import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { ERROR_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatusCode } from '~/models/errors';
 import userServices from '~/services/user.services';
+import hashPasswordOneWay from '~/utils/security';
 
 export const loginValidator = checkSchema({
     email: {
@@ -11,11 +12,14 @@ export const loginValidator = checkSchema({
         },
         custom: {
             options: async (value, { req }) => {
-                const user = await userServices.checkLogin({ email: value, password: req.body.password });
+                const user = await userServices.checkLogin({
+                    email: value,
+                    password: hashPasswordOneWay(req.body.password)
+                });
                 if (user === null) {
                     throw new ErrorWithStatusCode({
                         message: ERROR_MESSAGES.INVALID_CREDENTIALS,
-                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                        status_code: HTTP_STATUS_CODES.BAD_REQUEST
                     });
                 }
                 req.user = user;
@@ -52,7 +56,10 @@ export const registerValidator = checkSchema({
             options: async (value) => {
                 const isExistedEmail = await userServices.checkExistEmail({ email: value });
                 if (isExistedEmail) {
-                    throw new Error(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+                    throw new ErrorWithStatusCode({
+                        message: ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
+                        status_code: HTTP_STATUS_CODES.CONFLICT
+                    });
                 }
             }
         }

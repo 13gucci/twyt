@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import { WithId } from 'mongodb';
-import { LoginReqBody, RegisterReqBody } from '~/@types/requests/user.type.request';
+import { RegisterReqBody } from '~/@types/requests/user.type.request';
 import { JWT_ALGORITHM } from '~/constants/constant';
 import { TokenType } from '~/constants/enum';
 import User, { IUser } from '~/models/schemas/user.schema';
 import signToken from '~/utils/jwt';
 import hashPasswordOneWay from '~/utils/security';
 import databaseService from './database.services';
+import refreshTokenServices from './refresh_token.services';
 
 class UserService {
     private static instance: UserService;
@@ -68,6 +69,11 @@ class UserService {
         const user_id = response.insertedId.toString();
         const [access_token, refresh_token] = await this.signTokens(user_id);
 
+        await refreshTokenServices.createRefreshTokenByUserId({
+            token: refresh_token,
+            user_id: user_id
+        });
+
         return { access_token, refresh_token };
     }
 
@@ -79,13 +85,18 @@ class UserService {
     public async checkLogin(payload: { email: string; password: string }): Promise<WithId<IUser> | null> {
         const user = await databaseService.users.findOne({
             email: payload.email,
-            password: hashPasswordOneWay(payload.password)
+            password: payload.password
         });
         return user;
     }
 
     public async login(user_id: string) {
         const [access_token, refresh_token] = await this.signTokens(user_id);
+
+        await refreshTokenServices.createRefreshTokenByUserId({
+            token: refresh_token,
+            user_id: user_id
+        });
 
         return {
             access_token,

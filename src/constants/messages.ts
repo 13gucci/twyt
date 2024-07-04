@@ -5,7 +5,7 @@ export const ERROR_MESSAGES = {
     EMAIL_IS_REQUIRED: 'Email is required',
     EMAIL_MUST_VALID: 'Email must be valid',
     EMAIL_AND_PASSWORD_REQUIRED: 'Email and password are required',
-    EMAIL_ALREADY_EXISTS: 'Email already exists',
+    EMAIL_ALREADY_EXISTS: 'Email already exist',
     USER_NOT_FOUND: 'User not found',
     INVALID_CREDENTIALS: 'Invalid email or password',
     PASSWORD_IS_REQUIRED: 'Password is required',
