@@ -19,10 +19,6 @@ export const ERROR_MESSAGES = {
     RESOURCE_NOT_FOUND: 'Requested resource not found',
     SERVER_ERROR: 'Internal server error',
     INVALID_REQUEST: 'Invalid request',
-    FIELD_IS_REQUIRED: '{field} is required',
-    FIELD_MUST_BE_STRING: '{field} must be a string',
-    FIELD_MUST_BE_NUMBER: '{field} must be a number',
-    FIELD_MUST_BE_DATE: '{field} must be a valid date',
 
     //Confirm password
     CONFIRM_PASSWORD_REQUIRED: 'Confirm password is required',
@@ -54,7 +50,8 @@ export const ERROR_MESSAGES = {
     ACCESS_TOKEN_INVALID_FORMAT: 'Access_token is invalid format',
     REFRESH_TOKEN_REQUIRED: 'Access_token is required',
     REFRESH_TOKEN_MUST_BE_STRING: 'Refresh_token must be a string',
-    REFRESH_TOKEN_NOT_EXIST: 'Refresh_token is not existed'
+    REFRESH_TOKEN_NOT_EXIST: 'Refresh_token is not existed',
+    EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required'
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -77,5 +74,9 @@ export const SUCCESS_MESSAGES = {
     REGISTER_SUCCESS: 'Register new account successful',
 
     // Validation success messages
-    VALIDATION_SUCCESS: 'All fields are valid'
+    VALIDATION_SUCCESS: 'All fields are valid',
+
+    //Verify email
+    EMAIL_VERIFIED: 'Email already verified',
+    EMAIL_VERIFY_SUCCESS: 'Email verify successful'
 } as const;

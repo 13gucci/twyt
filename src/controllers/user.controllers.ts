@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { LogoutReqBody, RegisterReqBody } from '~/@types/requests/user.type.request';
+import { LogoutReqBody, RegisterReqBody, TokenPayload, VerifyEmailReqBody } from '~/@types/requests/user.type.request';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
-import { SUCCESS_MESSAGES } from '~/constants/messages';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '~/constants/messages';
+import { ErrorWithStatusCode } from '~/models/errors';
 import User from '~/models/schemas/user.schema';
-import refreshTokenServices from '~/services/refresh_token.services';
 import userServices from '~/services/user.services';
 //
 export const loginController = async (req: Request, res: Response) => {
@@ -16,7 +16,10 @@ export const loginController = async (req: Request, res: Response) => {
 
         return res.status(HTTP_STATUS_CODES.OK).json({
             message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
-            response
+            data: {
+                access_token: response.access_token,
+                refresh_token: response.refresh_token
+            }
         });
     }
 };
@@ -32,7 +35,10 @@ export const registerController = async (
 
     return res.status(HTTP_STATUS_CODES.CREATED).json({
         message: SUCCESS_MESSAGES.REGISTER_SUCCESS,
-        response
+        data: {
+            access_token: response.access_token,
+            refresh_token: response.refresh_token
+        }
     });
 };
 
@@ -42,5 +48,43 @@ export const logoutController = async (req: Request<ParamsDictionary, unknown, L
 
     return res.status(HTTP_STATUS_CODES.OK).json({
         message: response.message
+    });
+};
+
+export const emailVerifyController = async (
+    req: Request<ParamsDictionary, unknown, VerifyEmailReqBody>,
+    res: Response,
+    next: NextFunction
+) => {
+    const { user_id } = req.decoded_email_verify_token as TokenPayload;
+    const { email_verify_token } = req.body;
+
+    const user = await userServices.checkExistUserById({ user_id });
+
+    if (!user) {
+        return next(
+            new ErrorWithStatusCode({
+                message: ERROR_MESSAGES.USER_NOT_FOUND,
+                status_code: HTTP_STATUS_CODES.NOT_FOUND
+            })
+        );
+    }
+
+    //Đã verify rồi
+    //Trường hợp user bấm lại link verify
+    if (user.email_verify_token === '') {
+        return res.status(HTTP_STATUS_CODES.OK).json({
+            message: SUCCESS_MESSAGES.EMAIL_VERIFIED
+        });
+    }
+
+    const { access_token, refresh_token } = await userServices.verifyEmail({ user_id });
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+        message: SUCCESS_MESSAGES.EMAIL_VERIFY_SUCCESS,
+        data: {
+            access_token,
+            refresh_token
+        }
     });
 };
