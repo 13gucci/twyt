@@ -1,15 +1,15 @@
 import 'dotenv/config';
-import { WithId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 import { RegisterReqBody } from '~/@types/requests/user.type.request';
 import { JWT_ALGORITHM } from '~/constants/constant';
 import { TokenType } from '~/constants/enum';
-import User, { IUser } from '~/models/schemas/user.schema';
+import { SUCCESS_MESSAGES } from '~/constants/messages';
+import User, { EUserVerifyStatus, IUser } from '~/models/schemas/user.schema';
 import { signToken } from '~/utils/jwt';
 import hashPasswordOneWay from '~/utils/security';
 import databaseService from './database.services';
 import refreshTokenServices from './refresh_token.services';
-import { SUCCESS_MESSAGES } from '~/constants/messages';
-
+import {} from '../models/schemas/user.schema';
 class UserService {
     private static instance: UserService;
 
@@ -51,6 +51,20 @@ class UserService {
         });
     }
 
+    private signEmailVerifyToken(payload: { user_id: string }): Promise<string> {
+        return signToken({
+            payload: {
+                user_id: payload.user_id,
+                token_type: TokenType.EMAIL_VERIFY_TOKEN
+            },
+            secretKey: process.env.JWT_EMAIL_VERIFY_KEY as string,
+            options: {
+                algorithm: JWT_ALGORITHM,
+                expiresIn: process.env.EMAIL_VERIFY_KEY_EXPIRES_IN
+            }
+        });
+    }
+
     private async signTokens(payload: { user_id: string }): Promise<[access_token: string, refresh_token: string]> {
         return await Promise.all([
             this.signAccessToken({ user_id: payload.user_id }),
@@ -62,28 +76,27 @@ class UserService {
         access_token: string;
         refresh_token: string;
     }> {
-        const response = await databaseService.users.insertOne(
+        const usr_id = new ObjectId();
+        const email_verify_token = await this.signEmailVerifyToken({ user_id: usr_id.toString() });
+
+        await databaseService.users.insertOne(
             new User({
                 ...payload,
+                _id: usr_id,
                 date_of_birth: new Date(payload.date_of_birth),
-                password: hashPasswordOneWay(payload.password)
+                password: hashPasswordOneWay(payload.password),
+                email_verify_token: email_verify_token
             })
         );
-
-        const user_id = response.insertedId.toString();
-        const [access_token, refresh_token] = await this.signTokens({ user_id });
+        console.log('Your email verify', email_verify_token);
+        const [access_token, refresh_token] = await this.signTokens({ user_id: usr_id.toString() });
 
         await refreshTokenServices.createRefreshTokenByUserId({
             token: refresh_token,
-            user_id: user_id
+            user_id: usr_id.toString()
         });
 
         return { access_token, refresh_token };
-    }
-
-    public async checkExistEmail(payload: { email: string }): Promise<WithId<IUser> | null> {
-        const user = await databaseService.users.findOne({ email: payload.email });
-        return user;
     }
 
     public async checkLogin(payload: { email: string; password: string }): Promise<WithId<IUser> | null> {
@@ -112,6 +125,39 @@ class UserService {
         await refreshTokenServices.deleteRefreshToken({ token: payload.token });
         return {
             message: SUCCESS_MESSAGES.LOGOUT_SUCCESS
+        };
+    }
+
+    public async checkExistEmail(payload: { email: string }): Promise<WithId<IUser> | null> {
+        const user = await databaseService.users.findOne({ email: payload.email });
+        return user;
+    }
+
+    public async checkExistUserById(payload: { user_id: string }): Promise<WithId<IUser> | null> {
+        const user = await databaseService.users.findOne({ _id: new ObjectId(payload.user_id) });
+        return user;
+    }
+
+    public async verifyEmail(payload: { user_id: string }) {
+        const [_, [access_token, refresh_token]] = await Promise.all([
+            databaseService.users.updateOne(
+                {
+                    _id: new ObjectId(payload.user_id)
+                },
+                {
+                    $set: {
+                        email_verify_token: '',
+                        verify: EUserVerifyStatus.Verified,
+                        updated_at: new Date()
+                    }
+                }
+            ),
+            this.signTokens({ user_id: payload.user_id })
+        ]);
+
+        return {
+            access_token,
+            refresh_token
         };
     }
 }

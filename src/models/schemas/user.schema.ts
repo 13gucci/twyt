@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-enum EUserVerifyStatus {
+export enum EUserVerifyStatus {
     Unverified, // chưa xác thực email, mặc định = 0
     Verified, // đã xác thực email
     Banned // bị khóa
@@ -43,10 +43,10 @@ export default class User {
     avatar: string;
     cover_photo: string;
 
-    constructor(usr: Omit<IUser, '_id'>) {
+    constructor(usr: IUser) {
         const currentDate = new Date();
 
-        this._id = new ObjectId();
+        this._id = usr._id;
         this.name = usr.name;
         this.email = usr.email;
         this.date_of_birth = usr.date_of_birth;

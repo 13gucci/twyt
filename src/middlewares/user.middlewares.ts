@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { checkSchema } from 'express-validator';
+import { check, checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { ERROR_MESSAGES } from '~/constants/messages';
@@ -181,6 +181,7 @@ export const refreshTokenValidator = checkSchema(
                     if (!process.env.JWT_REFRESH_KEY) {
                         throw new Error('Do not have token');
                     }
+
                     try {
                         const [decoded_refresh_token, response] = await Promise.all([
                             verifyToken({
@@ -213,3 +214,31 @@ export const refreshTokenValidator = checkSchema(
     },
     ['body']
 );
+
+export const emailVerifyValidator = checkSchema({
+    email_verify_token: {
+        custom: {
+            options: async (value, { req }) => {
+                if (!value) {
+                    throw new ErrorWithStatusCode({
+                        message: ERROR_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
+                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                    });
+                }
+
+                if (!process.env.JWT_EMAIL_VERIFY_KEY) {
+                    throw new Error('Do not have token');
+                }
+
+                const decoded_email_verify_token = await verifyToken({
+                    token: value,
+                    secretKey: process.env.JWT_EMAIL_VERIFY_KEY
+                });
+
+                (req as Request).decoded_email_verify_token = decoded_email_verify_token;
+
+                return true;
+            }
+        }
+    }
+});
