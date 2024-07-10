@@ -5,6 +5,7 @@ export const ROUTES = {
         LOGOUT: '/logout',
         VERIFY_EMAIL: '/verify-email',
         RESEND_VERIFY_EMAIL: '/resend-verify-email',
-        FORGOT_PASSWORD: '/forgot-password'
+        FORGOT_PASSWORD: '/forgot-password',
+        VERIFY_FORGOT_PASSWORD: '/verify-forgot-password'
     }
 } as const;
