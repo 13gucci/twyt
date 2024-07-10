@@ -4,7 +4,8 @@ import {
     emailVerifyController,
     loginController,
     logoutController,
-    registerController
+    registerController,
+    resendVerifyEmailController
 } from '~/controllers/user.controllers';
 import {
     accessTokenValidator,
@@ -33,5 +34,15 @@ router.post(
 
 // [POST] /api/verify-email
 router.post(ROUTES.USER.VERIFY_EMAIL, requestValidator(emailVerifyValidator), asyncHandler(emailVerifyController));
+
+// [POST] /api/resend-verify-email
+router.post(
+    ROUTES.USER.RESEND_VERIFY_EMAIL,
+    requestValidator(accessTokenValidator),
+    asyncHandler(resendVerifyEmailController)
+);
+
+// [POST] /api/forgot-password
+router.post(ROUTES.USER.FORGOT_PASSWORD);
 
 export default router;

@@ -78,5 +78,6 @@ export const SUCCESS_MESSAGES = {
 
     //Verify email
     EMAIL_VERIFIED: 'Email already verified',
-    EMAIL_VERIFY_SUCCESS: 'Email verify successful'
+    EMAIL_VERIFY_SUCCESS: 'Email verify successful',
+    RESEND_VERIFY_EMAIL_SUCCESS: 'Resend email verify success'
 } as const;
