@@ -4,7 +4,7 @@ import { LogoutReqBody, RegisterReqBody, TokenPayload, VerifyEmailReqBody } from
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatusCode } from '~/models/errors';
-import User from '~/models/schemas/user.schema';
+import User, { EUserVerifyStatus } from '~/models/schemas/user.schema';
 import userServices from '~/services/user.services';
 //
 export const loginController = async (req: Request, res: Response) => {
@@ -87,4 +87,29 @@ export const emailVerifyController = async (
             refresh_token
         }
     });
+};
+
+export const resendVerifyEmailController = async (req: Request, res: Response, next: NextFunction) => {
+    const { user_id } = req.decoded_access_token as TokenPayload;
+    console.log(req.decoded_access_token);
+    const response = await userServices.checkExistEmailVerifyTokenByUserId({ user_id });
+    console.log(response);
+    if (!response) {
+        return next(
+            new ErrorWithStatusCode({
+                message: ERROR_MESSAGES.USER_NOT_FOUND,
+                status_code: HTTP_STATUS_CODES.NOT_FOUND
+            })
+        );
+    }
+
+    if (response.verify === EUserVerifyStatus.Verified) {
+        return res.status(HTTP_STATUS_CODES.OK).json({
+            message: SUCCESS_MESSAGES.EMAIL_VERIFIED
+        });
+    }
+
+    const result = await userServices.resendVerifyEmail({ user_id });
+
+    return res.status(HTTP_STATUS_CODES.OK).json(result);
 };

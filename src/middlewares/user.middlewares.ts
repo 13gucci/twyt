@@ -242,3 +242,29 @@ export const emailVerifyValidator = checkSchema({
         }
     }
 });
+
+export const forgotPasswordValidator = checkSchema({
+    email: {
+        custom: {
+            options: async (value, { req }) => {
+                if (!value) {
+                    throw new ErrorWithStatusCode({
+                        message: ERROR_MESSAGES.EMAIL_IS_REQUIRED,
+                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                    });
+                }
+
+                const response = await userServices.checkExistEmail({ email: value });
+
+                if (!response) {
+                    throw new ErrorWithStatusCode({
+                        message: ERROR_MESSAGES.USER_NOT_FOUND,
+                        status_code: HTTP_STATUS_CODES.NOT_FOUND
+                    });
+                }
+
+                req.user = response;
+            }
+        }
+    }
+});

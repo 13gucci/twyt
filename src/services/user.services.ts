@@ -65,6 +65,20 @@ class UserService {
         });
     }
 
+    private signForgotPasswordToken(payload: { user_id: string }): Promise<string> {
+        return signToken({
+            payload: {
+                user_id: payload.user_id,
+                token_type: TokenType.FORGOT_PASSWORD_TOKEN
+            },
+            secretKey: process.env.JWT_FORGOT_PASSWORD_KEY as string,
+            options: {
+                algorithm: JWT_ALGORITHM,
+                expiresIn: process.env.FORGOT_PASSWORD_KEY_EXPIRES_IN
+            }
+        });
+    }
+
     private async signTokens(payload: { user_id: string }): Promise<[access_token: string, refresh_token: string]> {
         return await Promise.all([
             this.signAccessToken({ user_id: payload.user_id }),
@@ -133,6 +147,13 @@ class UserService {
         return user;
     }
 
+    public async checkExistEmailVerifyTokenByUserId(payload: { user_id: string }) {
+        const user = await databaseService.users.findOne({
+            _id: new ObjectId(payload.user_id)
+        });
+        return user;
+    }
+
     public async checkExistUserById(payload: { user_id: string }): Promise<WithId<IUser> | null> {
         const user = await databaseService.users.findOne({ _id: new ObjectId(payload.user_id) });
         return user;
@@ -147,8 +168,10 @@ class UserService {
                 {
                     $set: {
                         email_verify_token: '',
-                        verify: EUserVerifyStatus.Verified,
-                        updated_at: new Date()
+                        verify: EUserVerifyStatus.Verified
+                    },
+                    $currentDate: {
+                        updated_at: true
                     }
                 }
             ),
@@ -159,6 +182,52 @@ class UserService {
             access_token,
             refresh_token
         };
+    }
+
+    public async resendVerifyEmail(payload: { user_id: string }): Promise<{
+        message: string;
+    }> {
+        //Assump send email
+        const email_verify_token = await this.signEmailVerifyToken({ user_id: payload.user_id });
+        console.log('Resned verify email', email_verify_token);
+
+        await databaseService.users.updateOne(
+            {
+                _id: new ObjectId(payload.user_id)
+            },
+            {
+                $set: {
+                    email_verify_token: email_verify_token
+                },
+                $currentDate: {
+                    updated_at: true
+                }
+            }
+        );
+
+        return { message: SUCCESS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS };
+    }
+
+    public async updateForgotPassword(payload: { user_id: string }) {
+        const forgot_password_token = await this.signForgotPasswordToken({ user_id: payload.user_id });
+
+        console.log('Forgot password token', forgot_password_token);
+
+        await databaseService.users.updateOne(
+            {
+                _id: new ObjectId(payload.user_id)
+            },
+            {
+                $set: {
+                    forgot_password_token
+                },
+                $currentDate: {
+                    updated_at: true
+                }
+            }
+        );
+
+        return { forgot_password_token };
     }
 }
 
