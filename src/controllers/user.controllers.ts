@@ -1,6 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { LogoutReqBody, RegisterReqBody, TokenPayload, VerifyEmailReqBody } from '~/@types/requests/user.type.request';
+import _ from 'lodash';
+import {
+    ForgotPasswordReqBody,
+    LogoutReqBody,
+    RegisterReqBody,
+    TokenPayload,
+    VerifyEmailReqBody
+} from '~/@types/requests/user.type.request';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatusCode } from '~/models/errors';
@@ -57,7 +64,6 @@ export const emailVerifyController = async (
     next: NextFunction
 ) => {
     const { user_id } = req.decoded_email_verify_token as TokenPayload;
-    const { email_verify_token } = req.body;
 
     const user = await userServices.checkExistUserById({ user_id });
 
@@ -112,4 +118,17 @@ export const resendVerifyEmailController = async (req: Request, res: Response, n
     const result = await userServices.resendVerifyEmail({ user_id });
 
     return res.status(HTTP_STATUS_CODES.OK).json(result);
+};
+
+export const forgotPasswordController = async (
+    req: Request<ParamsDictionary, unknown, ForgotPasswordReqBody>,
+    res: Response,
+    next: NextFunction
+) => {
+    const { user } = req;
+    const { _id } = user as User;
+
+    const result = await userServices.updateForgotPassword({ user_id: _id.toString() });
+
+    res.status(HTTP_STATUS_CODES.OK).json(result);
 };

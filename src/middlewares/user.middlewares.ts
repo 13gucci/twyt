@@ -264,6 +264,7 @@ export const forgotPasswordValidator = checkSchema({
                 }
 
                 req.user = response;
+                return true;
             }
         }
     }

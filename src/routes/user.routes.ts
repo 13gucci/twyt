@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ROUTES } from '~/constants/routes';
 import {
     emailVerifyController,
+    forgotPasswordController,
     loginController,
     logoutController,
     registerController,
@@ -10,6 +11,7 @@ import {
 import {
     accessTokenValidator,
     emailVerifyValidator,
+    forgotPasswordValidator,
     loginValidator,
     refreshTokenValidator,
     registerValidator
@@ -19,30 +21,38 @@ import { asyncHandler } from '~/utils/wrapperHandlers';
 
 const router = Router();
 
-// [POST] /api/login
+// [POST] /user/login
 router.post(ROUTES.USER.LOGIN, requestValidator(loginValidator), asyncHandler(loginController));
 
-// [POST] /api/register
+// [POST] /user/register
 router.post(ROUTES.USER.REGISTER, requestValidator(registerValidator), asyncHandler(registerController));
 
-// [POST] /api/logout
+// [POST] /user/logout
 router.post(
     ROUTES.USER.LOGOUT,
     [requestValidator(accessTokenValidator), requestValidator(refreshTokenValidator)],
     asyncHandler(logoutController)
 );
 
-// [POST] /api/verify-email
+// [POST] /user/verify-email
 router.post(ROUTES.USER.VERIFY_EMAIL, requestValidator(emailVerifyValidator), asyncHandler(emailVerifyController));
 
-// [POST] /api/resend-verify-email
+// [POST] /user/resend-verify-email
 router.post(
     ROUTES.USER.RESEND_VERIFY_EMAIL,
     requestValidator(accessTokenValidator),
     asyncHandler(resendVerifyEmailController)
 );
 
-// [POST] /api/forgot-password
-router.post(ROUTES.USER.FORGOT_PASSWORD);
+// [POST] /user/forgot-password
+router.post(
+    ROUTES.USER.FORGOT_PASSWORD,
+    requestValidator(forgotPasswordValidator),
+    asyncHandler(forgotPasswordController)
+);
+
+// [POST] /user/verify-forgot-password
+
+router.post(ROUTES.USER.VERIFY_EMAIL);
 
 export default router;

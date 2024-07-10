@@ -208,7 +208,9 @@ class UserService {
         return { message: SUCCESS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS };
     }
 
-    public async updateForgotPassword(payload: { user_id: string }) {
+    public async updateForgotPassword(payload: { user_id: string }): Promise<{
+        message: string;
+    }> {
         const forgot_password_token = await this.signForgotPasswordToken({ user_id: payload.user_id });
 
         console.log('Forgot password token', forgot_password_token);
@@ -227,7 +229,7 @@ class UserService {
             }
         );
 
-        return { forgot_password_token };
+        return { message: SUCCESS_MESSAGES.FORGOT_PASSWORD_EMAIL_SUCCESS };
     }
 }
 
