@@ -6,14 +6,15 @@ import {
     LogoutReqBody,
     RegisterReqBody,
     TokenPayload,
-    VerifyEmailReqBody
+    VerifyEmailReqBody,
+    VerifyForgotPasswordReqBody
 } from '~/@types/requests/user.type.request';
 import HTTP_STATUS_CODES from '~/constants/httpStatusCode';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatusCode } from '~/models/errors';
 import User, { EUserVerifyStatus } from '~/models/schemas/user.schema';
 import userServices from '~/services/user.services';
-//
+
 export const loginController = async (req: Request, res: Response) => {
     const { user } = req;
     const { _id } = user as User;
@@ -63,28 +64,17 @@ export const emailVerifyController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const { user_id } = req.decoded_email_verify_token as TokenPayload;
-
-    const user = await userServices.checkExistUserById({ user_id });
-
-    if (!user) {
-        return next(
-            new ErrorWithStatusCode({
-                message: ERROR_MESSAGES.USER_NOT_FOUND,
-                status_code: HTTP_STATUS_CODES.NOT_FOUND
-            })
-        );
-    }
+    const { user } = req;
 
     //Đã verify rồi
     //Trường hợp user bấm lại link verify
-    if (user.email_verify_token === '') {
+    if ((user as User).email_verify_token === '') {
         return res.status(HTTP_STATUS_CODES.OK).json({
             message: SUCCESS_MESSAGES.EMAIL_VERIFIED
         });
     }
 
-    const { access_token, refresh_token } = await userServices.verifyEmail({ user_id });
+    const { access_token, refresh_token } = await userServices.verifyEmail({ user_id: (user as User)._id.toString() });
 
     return res.status(HTTP_STATUS_CODES.OK).json({
         message: SUCCESS_MESSAGES.EMAIL_VERIFY_SUCCESS,
@@ -97,9 +87,8 @@ export const emailVerifyController = async (
 
 export const resendVerifyEmailController = async (req: Request, res: Response, next: NextFunction) => {
     const { user_id } = req.decoded_access_token as TokenPayload;
-    console.log(req.decoded_access_token);
-    const response = await userServices.checkExistEmailVerifyTokenByUserId({ user_id });
-    console.log(response);
+
+    const response = await userServices.checkExistUserByVerifyTokenId({ user_id });
     if (!response) {
         return next(
             new ErrorWithStatusCode({
@@ -130,5 +119,15 @@ export const forgotPasswordController = async (
 
     const result = await userServices.updateForgotPassword({ user_id: _id.toString() });
 
-    res.status(HTTP_STATUS_CODES.OK).json(result);
+    return res.status(HTTP_STATUS_CODES.OK).json(result);
+};
+
+export const verifyForgotPasswordController = async (
+    req: Request<ParamsDictionary, unknown, VerifyForgotPasswordReqBody>,
+    res: Response,
+    next: NextFunction
+) => {
+    return res.status(HTTP_STATUS_CODES.OK).json({
+        message: SUCCESS_MESSAGES.FORGOT_PASSWORD_VERIFY_SUCCESS
+    });
 };

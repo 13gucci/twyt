@@ -23,6 +23,7 @@ class UserService {
         return UserService.instance;
     }
 
+    // Create Access Token
     private signAccessToken(payload: { user_id: string }): Promise<string> {
         return signToken({
             payload: {
@@ -37,6 +38,7 @@ class UserService {
         });
     }
 
+    // Create Refresh Token
     private signRefreshToken(payload: { user_id: string }): Promise<string> {
         return signToken({
             payload: {
@@ -51,6 +53,7 @@ class UserService {
         });
     }
 
+    // Create Verify Email Token
     private signEmailVerifyToken(payload: { user_id: string }): Promise<string> {
         return signToken({
             payload: {
@@ -65,6 +68,7 @@ class UserService {
         });
     }
 
+    // Create Forgot Password Token
     private signForgotPasswordToken(payload: { user_id: string }): Promise<string> {
         return signToken({
             payload: {
@@ -79,6 +83,7 @@ class UserService {
         });
     }
 
+    // Create Access & Refresh Token
     private async signTokens(payload: { user_id: string }): Promise<[access_token: string, refresh_token: string]> {
         return await Promise.all([
             this.signAccessToken({ user_id: payload.user_id }),
@@ -86,6 +91,7 @@ class UserService {
         ]);
     }
 
+    // Register
     public async register(payload: RegisterReqBody): Promise<{
         access_token: string;
         refresh_token: string;
@@ -113,6 +119,7 @@ class UserService {
         return { access_token, refresh_token };
     }
 
+    // Check Login
     public async checkLogin(payload: { email: string; password: string }): Promise<WithId<IUser> | null> {
         const user = await databaseService.users.findOne({
             email: payload.email,
@@ -121,6 +128,7 @@ class UserService {
         return user;
     }
 
+    // Login
     public async login(payload: { user_id: string }) {
         const [access_token, refresh_token] = await this.signTokens({ user_id: payload.user_id });
 
@@ -135,6 +143,7 @@ class UserService {
         };
     }
 
+    //Logout
     public async logout(payload: { token: string }): Promise<{ message: string }> {
         await refreshTokenServices.deleteRefreshToken({ token: payload.token });
         return {
@@ -142,12 +151,14 @@ class UserService {
         };
     }
 
+    // Check email exist
     public async checkExistEmail(payload: { email: string }): Promise<WithId<IUser> | null> {
         const user = await databaseService.users.findOne({ email: payload.email });
         return user;
     }
 
-    public async checkExistEmailVerifyTokenByUserId(payload: { user_id: string }) {
+    //Check email verify
+    public async checkExistUserByVerifyTokenId(payload: { user_id: string }) {
         const user = await databaseService.users.findOne({
             _id: new ObjectId(payload.user_id)
         });
@@ -184,6 +195,7 @@ class UserService {
         };
     }
 
+    //Resend Verify Email
     public async resendVerifyEmail(payload: { user_id: string }): Promise<{
         message: string;
     }> {
@@ -208,12 +220,13 @@ class UserService {
         return { message: SUCCESS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS };
     }
 
+    //Update forgot password field
     public async updateForgotPassword(payload: { user_id: string }): Promise<{
         message: string;
     }> {
         const forgot_password_token = await this.signForgotPasswordToken({ user_id: payload.user_id });
 
-        console.log('Forgot password token', forgot_password_token);
+        console.log('Send Forgot password token', forgot_password_token);
 
         await databaseService.users.updateOne(
             {
@@ -229,7 +242,7 @@ class UserService {
             }
         );
 
-        return { message: SUCCESS_MESSAGES.FORGOT_PASSWORD_EMAIL_SUCCESS };
+        return { message: SUCCESS_MESSAGES.SEND_LINK_FORGOT_PASSWORD_EMAIL_SUCCESS };
     }
 }
 

@@ -15,6 +15,7 @@ export const loginValidator = checkSchema(
             isEmail: {
                 errorMessage: ERROR_MESSAGES.EMAIL_MUST_VALID
             },
+            trim: true,
             custom: {
                 options: async (value, { req }) => {
                     const user = await userServices.checkLogin({
@@ -215,57 +216,118 @@ export const refreshTokenValidator = checkSchema(
     ['body']
 );
 
-export const emailVerifyValidator = checkSchema({
-    email_verify_token: {
-        custom: {
-            options: async (value, { req }) => {
-                if (!value) {
-                    throw new ErrorWithStatusCode({
-                        message: ERROR_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
-                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+export const emailVerifyValidator = checkSchema(
+    {
+        email_verify_token: {
+            trim: true,
+            custom: {
+                options: async (value, { req }) => {
+                    if (!value) {
+                        throw new ErrorWithStatusCode({
+                            message: ERROR_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
+                            status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                        });
+                    }
+
+                    if (!process.env.JWT_EMAIL_VERIFY_KEY) {
+                        throw new Error('Do not have token');
+                    }
+
+                    const decoded_email_verify_token = await verifyToken({
+                        token: value,
+                        secretKey: process.env.JWT_EMAIL_VERIFY_KEY
                     });
+
+                    const { user_id } = decoded_email_verify_token;
+
+                    const user = await userServices.checkExistUserById({ user_id });
+
+                    if (!user) {
+                        throw new ErrorWithStatusCode({
+                            message: ERROR_MESSAGES.USER_NOT_FOUND,
+                            status_code: HTTP_STATUS_CODES.NOT_FOUND
+                        });
+                    }
+
+                    (req as Request).decoded_email_verify_token = decoded_email_verify_token;
+                    req.user = user;
+                    return true;
                 }
-
-                if (!process.env.JWT_EMAIL_VERIFY_KEY) {
-                    throw new Error('Do not have token');
-                }
-
-                const decoded_email_verify_token = await verifyToken({
-                    token: value,
-                    secretKey: process.env.JWT_EMAIL_VERIFY_KEY
-                });
-
-                (req as Request).decoded_email_verify_token = decoded_email_verify_token;
-
-                return true;
             }
         }
-    }
-});
+    },
+    ['body']
+);
 
-export const forgotPasswordValidator = checkSchema({
-    email: {
-        custom: {
-            options: async (value, { req }) => {
-                if (!value) {
-                    throw new ErrorWithStatusCode({
-                        message: ERROR_MESSAGES.EMAIL_IS_REQUIRED,
-                        status_code: HTTP_STATUS_CODES.UNAUTHORIZED
-                    });
+export const forgotPasswordValidator = checkSchema(
+    {
+        email: {
+            custom: {
+                options: async (value, { req }) => {
+                    if (!value) {
+                        throw new ErrorWithStatusCode({
+                            message: ERROR_MESSAGES.EMAIL_IS_REQUIRED,
+                            status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                        });
+                    }
+
+                    const response = await userServices.checkExistEmail({ email: value });
+
+                    if (!response) {
+                        throw new ErrorWithStatusCode({
+                            message: ERROR_MESSAGES.USER_NOT_FOUND,
+                            status_code: HTTP_STATUS_CODES.NOT_FOUND
+                        });
+                    }
+
+                    req.user = response;
+                    return true;
                 }
-
-                const response = await userServices.checkExistEmail({ email: value });
-
-                if (!response) {
-                    throw new ErrorWithStatusCode({
-                        message: ERROR_MESSAGES.USER_NOT_FOUND,
-                        status_code: HTTP_STATUS_CODES.NOT_FOUND
-                    });
-                }
-
-                req.user = response;
-                return true;
             }
         }
-    }
-});
+    },
+    ['body']
+);
+
+export const verifyForgotPasswordValidator = checkSchema(
+    {
+        forgot_password_token: {
+            trim: true,
+            custom: {
+                options: async (value, { req }) => {
+                    if (!value) {
+                        throw new ErrorWithStatusCode({
+                            message: ERROR_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED,
+                            status_code: HTTP_STATUS_CODES.UNAUTHORIZED
+                        });
+                    }
+
+                    if (!process.env.JWT_FORGOT_PASSWORD_KEY) {
+                        throw new Error('Do not have token');
+                    }
+
+                    const decoded_forgot_password_token = await verifyToken({
+                        token: value,
+                        secretKey: process.env.JWT_FORGOT_PASSWORD_KEY
+                    });
+                    const { user_id } = decoded_forgot_password_token;
+
+                    const user = await userServices.checkExistUserByVerifyTokenId({ user_id });
+
+                    if (!user) {
+                        throw new ErrorWithStatusCode({
+                            message: ERROR_MESSAGES.USER_NOT_FOUND,
+                            status_code: HTTP_STATUS_CODES.NOT_FOUND
+                        });
+                    }
+
+                    (req as Request).decoded_forgot_password_token = decoded_forgot_password_token;
+                    req.user = user;
+
+                    return true;
+                }
+            }
+        }
+    },
+    ['body']
+);
