@@ -51,7 +51,9 @@ export const ERROR_MESSAGES = {
     REFRESH_TOKEN_REQUIRED: 'Access_token is required',
     REFRESH_TOKEN_MUST_BE_STRING: 'Refresh_token must be a string',
     REFRESH_TOKEN_NOT_EXIST: 'Refresh_token is not existed',
-    EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required'
+    EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required',
+    FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Fotgot password token is required',
+    VERIFY_TOKEN_NOT_SAME: 'Verify token is not valid'
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -80,5 +82,6 @@ export const SUCCESS_MESSAGES = {
     EMAIL_VERIFIED: 'Email already verified',
     EMAIL_VERIFY_SUCCESS: 'Email verify successful',
     RESEND_VERIFY_EMAIL_SUCCESS: 'Resend email verify success',
-    FORGOT_PASSWORD_EMAIL_SUCCESS: 'Send email forgot password success'
+    SEND_LINK_FORGOT_PASSWORD_EMAIL_SUCCESS: 'Send link reset forgot password success',
+    FORGOT_PASSWORD_VERIFY_SUCCESS: 'Veriy forgot password success'
 } as const;

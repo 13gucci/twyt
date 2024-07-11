@@ -6,7 +6,8 @@ import {
     loginController,
     logoutController,
     registerController,
-    resendVerifyEmailController
+    resendVerifyEmailController,
+    verifyForgotPasswordController
 } from '~/controllers/user.controllers';
 import {
     accessTokenValidator,
@@ -14,7 +15,8 @@ import {
     forgotPasswordValidator,
     loginValidator,
     refreshTokenValidator,
-    registerValidator
+    registerValidator,
+    verifyForgotPasswordValidator
 } from '~/middlewares/user.middlewares';
 import { requestValidator } from '~/utils/validation';
 import { asyncHandler } from '~/utils/wrapperHandlers';
@@ -44,7 +46,7 @@ router.post(
     asyncHandler(resendVerifyEmailController)
 );
 
-// [POST] /user/forgot-password
+// [POST] /user/forgot-password -- Send email to user
 router.post(
     ROUTES.USER.FORGOT_PASSWORD,
     requestValidator(forgotPasswordValidator),
@@ -52,7 +54,12 @@ router.post(
 );
 
 // [POST] /user/verify-forgot-password
+router.post(
+    ROUTES.USER.VERIFY_FORGOT_PASSWORD,
+    requestValidator(verifyForgotPasswordValidator),
+    asyncHandler(verifyForgotPasswordController)
+);
 
-router.post(ROUTES.USER.VERIFY_EMAIL);
+// [POST] /user/api/reset-password
 
 export default router;
